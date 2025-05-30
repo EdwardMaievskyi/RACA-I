@@ -13,7 +13,7 @@ def main():
     
     # Generate and execute code
     user_request = ["Create a function that pulls BTC-USD ticker data for the last 30 days from the yahoo finance API and returns it as a prettified plain text table",
-                    'Calculate the 10th prime number']
+                    'Calculate the 109th prime number']
     result = agent.generate_and_execute(user_request[1])
     
     if result.success:
