@@ -1,15 +1,8 @@
-"""
-Gradio web interface for the AI Code Generation application.
-Clean, elegant implementation following best practices.
-"""
-
 import gradio as gr
-import tempfile
 import os
+import tempfile
 from typing import Tuple, Optional
-from pathlib import Path
 
-# Disable Gradio analytics
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 from core.code_agent import CodeAgent, ExecutionResult
@@ -17,10 +10,10 @@ from core.code_agent import CodeAgent, ExecutionResult
 
 class CodeGeneratorUI:
     """Clean UI wrapper for the CodeAgent with proper separation of concerns."""
-    
+
     def __init__(self):
         self.agent = CodeAgent(verbose=False)
-    
+
     def generate_and_execute_code(
         self, 
         user_request: str, 
@@ -28,7 +21,7 @@ class CodeGeneratorUI:
     ) -> Tuple[str, str, str, str, Optional[str]]:
         """
         Generate and execute code based on user request.
-        
+
         Returns:
             Tuple of (status_html, final_answer, generated_code, execution_info, download_file)
         """
@@ -40,27 +33,24 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-        
-        # Update agent settings
+
         self.agent.max_retries = max_retries
-        
+
         try:
-            # Execute the code generation
             result = self.agent.generate_and_execute(user_request)
-            
-            # Create outputs
+
             status_html = self._create_status_html_from_result(result)
             final_answer = result.output or "Code executed successfully (no output)" if result.success else f"**Error:** {result.error_message}"
             generated_code = self.agent.get_full_code(result) or "No code generated"
             execution_info = self._create_execution_info(result)
             download_file = self._create_download_file(generated_code) if result.success else None
-            
+
             return status_html, final_answer, generated_code, execution_info, download_file
-            
+
         except Exception as e:
             error_status = self._create_status_html("error", "❌ Fatal Error", f"An unexpected error occurred: {str(e)}")
             return error_status, f"**Fatal Error:** {str(e)}", "", "", None
-    
+
     def generate_code_only(
         self, 
         user_request: str, 
@@ -68,7 +58,7 @@ class CodeGeneratorUI:
     ) -> Tuple[str, str, str, Optional[str]]:
         """
         Generate code without executing it.
-        
+
         Returns:
             Tuple of (status_html, generated_code, execution_info, download_file)
         """
@@ -79,26 +69,23 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-        
-        # Update agent settings
+
         self.agent.max_retries = max_retries
-        
+
         try:
-            # Generate code only
             result = self.agent.generate_code_only(user_request)
-            
-            # Create outputs
+
             status_html = self._create_status_html_from_result(result)
             generated_code = self.agent.get_full_code(result) or "No code generated"
             execution_info = self._create_execution_info(result)
             download_file = self._create_download_file(generated_code) if result.success else None
-            
+
             return status_html, generated_code, execution_info, download_file
-            
+
         except Exception as e:
             error_status = self._create_status_html("error", "❌ Fatal Error", f"An unexpected error occurred: {str(e)}")
             return error_status, "", "", None
-    
+
     def _create_status_html_from_result(self, result: ExecutionResult) -> str:
         """Create status HTML from execution result."""
         if result.success:
@@ -113,7 +100,7 @@ class CodeGeneratorUI:
                 "❌ Failed",
                 result.error_message or "Unknown error occurred"
             )
-    
+
     def _create_status_html(self, status_type: str, title: str, message: str) -> str:
         """Create HTML for status display."""
         return f"""
@@ -122,7 +109,7 @@ class CodeGeneratorUI:
             <p style="margin: 0; font-size: 1rem; opacity: 0.95;">{message}</p>
         </div>
         """
-    
+
     def _create_execution_info(self, result: ExecutionResult) -> str:
         """Create execution information HTML."""
         return f"""
@@ -141,14 +128,13 @@ class CodeGeneratorUI:
             </div>
         </div>
         """
-    
+
     def _create_download_file(self, code_content: str) -> Optional[str]:
         """Create a temporary file for download."""
         if not code_content or not code_content.strip():
             return None
-        
+
         try:
-            # Create a temporary file that will be cleaned up automatically
             temp_file = tempfile.NamedTemporaryFile(
                 mode='w',
                 suffix='.py',
@@ -156,12 +142,12 @@ class CodeGeneratorUI:
                 delete=False,
                 encoding='utf-8'
             )
-            
+
             temp_file.write(code_content)
             temp_file.close()
-            
+
             return temp_file.name
-            
+
         except Exception as e:
             print(f"Error creating download file: {e}")
             return None
@@ -695,7 +681,6 @@ def create_gradio_interface():
                     )
 
             with gr.TabItem("💻 Generated Code", elem_id="code-tab"):
-                # Execution info
                 execution_info = gr.HTML(value="")
 
                 with gr.Group(elem_classes=["output-container"]):
@@ -715,7 +700,6 @@ def create_gradio_interface():
 
         def handle_generate_and_execute(request, retries):
             status, answer, code, info, file_path = ui.generate_and_execute_code(request, retries)
-            # Return the file path for DownloadButton
             return status, answer, code, info, gr.DownloadButton(
                 label="💾 Download Code",
                 value=file_path,
@@ -725,13 +709,19 @@ def create_gradio_interface():
 
         generate_and_run_btn.click(
             fn=handle_generate_and_execute,
-            inputs=[user_request, max_retries],
-            outputs=[status_display, final_answer, generated_code, execution_info, download_btn],
+            inputs=[user_request,
+                    max_retries],
+            outputs=[status_display,
+                     final_answer,
+                     generated_code,
+                     execution_info,
+                     download_btn],
             show_progress=True
         )
 
         def handle_generate_only(request, retries):
-            status, code, info, file_path = ui.generate_code_only(request, retries)
+            status, code, info, file_path = ui.generate_code_only(request,
+                                                                  retries)
 
             return status, "", code, info, gr.DownloadButton(
                 label="💾 Download Code",
@@ -742,8 +732,13 @@ def create_gradio_interface():
 
         generate_only_btn.click(
             fn=handle_generate_only,
-            inputs=[user_request, max_retries],
-            outputs=[status_display, final_answer, generated_code, execution_info, download_btn],
+            inputs=[user_request,
+                    max_retries],
+            outputs=[status_display,
+                     final_answer,
+                     generated_code,
+                     execution_info,
+                     download_btn],
             show_progress=True
         )
 
@@ -758,8 +753,8 @@ def create_gradio_interface():
 
 
 def launch_app(
-    server_name: str = "0.0.0.0",
-    server_port: int = 7860,
+    server_name: str = os.getenv("GRADIO_HOST", "127.0.0.1"),
+    server_port: int = int(os.getenv("GRADIO_PORT", "7860")),
     share: bool = False,
     debug: bool = False
 ):

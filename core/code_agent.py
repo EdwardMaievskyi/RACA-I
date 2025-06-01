@@ -1,14 +1,9 @@
-"""
-CodeAgent class wrapper for the AI code generation workflow.
-"""
-
-from typing import Dict, Any, Optional, Iterator, List
 from dataclasses import dataclass
 import time
+from typing import Dict, Any, Optional, List
 
-from .state_models import GraphState, PythonCode
-from config import MAX_RETRY_ITERATIONS, PRIMARY_MODEL_NAME
-from .graph_flow import create_graph_flow
+from config import MAX_RETRY_ITERATIONS
+from core.graph_flow import create_graph_flow
 
 
 code_agent_app = create_graph_flow()

@@ -1,11 +1,8 @@
 import os
 import sys
-from pathlib import Path
+from dotenv import load_dotenv
 
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
-
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+load_dotenv()
 
 from ui.gradio_app import launch_app
 
