@@ -1,7 +1,7 @@
+import os
 import re
 import subprocess
 import sys
-import os
 import tempfile
 
 from config import MAX_CODE_TIMEOUT, MAX_RETRY_ITERATIONS

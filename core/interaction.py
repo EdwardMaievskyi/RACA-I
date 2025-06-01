@@ -2,6 +2,7 @@ import logging
 from typing import List, Dict, Any, Optional, Type
 from pydantic import BaseModel, ValidationError
 from openai import OpenAI, APIError
+
 from config import PRIMARY_MODEL_NAME, OPENAI_API_KEY
 
 
