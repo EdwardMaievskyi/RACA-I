@@ -1,6 +1,6 @@
-e2b-code-interpreter
+e2b-code-interpreter==1.5.0
 gradio>=4.0.0
-langgraph
-openai
-python-dotenv
-pydantic
+langgraph==0.4.5
+openai==1.79.0
+python-dotenv==1.0.1
+pydantic==2.11.4
