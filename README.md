@@ -92,7 +92,7 @@ docker-compose logs -f # View logs
 
 ## ⚙️ Configuration
 
-- `.env` file for OpenAI API keys and runtime settings.
+- `.env` file for OpenAI API, E2B API keys and runtime settings.
 - Customizable retry attempts and other UI settings.
 
 ---
