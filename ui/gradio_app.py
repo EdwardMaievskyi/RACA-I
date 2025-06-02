@@ -52,8 +52,8 @@ class CodeGeneratorUI:
             return error_status, f"**Fatal Error:** {str(e)}", "", "", None
 
     def generate_code_only(
-        self, 
-        user_request: str, 
+        self,
+        user_request: str,
         max_retries: int
     ) -> Tuple[str, str, str, Optional[str]]:
         """
@@ -629,12 +629,13 @@ def create_gradio_interface():
             # Examples right below the input
             gr.Examples(
                 examples=[
-                    ["Calculate the 101s prime number"],
+                    ["Calculate the 101st Fibonacci number"],
                     ["Calculate the 97th prime number"],
-                    ["Return a prettified plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance"],
+                    ["Return a plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance"],
                     ["Create a password generator with customizable length and character sets"],
-                    ["Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a prettified plain text table using the Open-Meteo API."],
-                    ["Convert 20 Fahrenheit to Celsius"]
+                    ["Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a plain text table using the Open-Meteo API."],
+                    ["Convert 20 Fahrenheit to Celsius"],
+                    ["Count number of characters 'r' in the word 'raspberry'"]
                 ],
                 inputs=[user_request],
                 label="💡 Click any example to try it out"

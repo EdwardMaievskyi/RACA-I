@@ -11,6 +11,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
+    dnsutils \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -23,6 +26,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code and change ownership to appuser
 COPY . .
+
 RUN chown -R appuser:appuser /app
 
 # Switch to non-root user

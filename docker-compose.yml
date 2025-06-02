@@ -4,26 +4,28 @@ services:
   coding-agent:
     build: .
     container_name: ai-coding-agent
+    privileged: false
     ports:
-      - "127.0.0.1:7860:7860"
+       - "127.0.0.1:7860:7860"
     environment:
       - GRADIO_HOST=0.0.0.0
       - GRADIO_PORT=7860
       - GRADIO_SHARE=false
       - GRADIO_ANALYTICS_ENABLED=False
       - GRADIO_TELEMETRY_ENABLED=False
+      - ALLOW_LOCAL_EXECUTION=False
     volumes:
       - ./.env:/app/.env:ro
     restart: unless-stopped
-    networks:
-      - research-network
     tmpfs:
       - /tmp
       - /app/.gradio
     dns:
+      - 1.1.1.1
       - 8.8.8.8
       - 8.8.4.4
-      - 1.1.1.1
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   research-network:
