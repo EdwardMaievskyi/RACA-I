@@ -1,3 +1,4 @@
+e2b-code-interpreter
 gradio>=4.0.0
 langgraph
 openai

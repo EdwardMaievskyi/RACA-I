@@ -1,6 +1,9 @@
 .git
 .gitignore
 README.md
+LICENSE
+docker-compose.yml
+run.sh
 Dockerfile
 .dockerignore
 __pycache__
@@ -12,5 +15,7 @@ __pycache__
 .venv
 venv/
 .env
+.env.example
+.cursorignore
 *.log
 .DS_Store

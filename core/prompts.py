@@ -6,7 +6,9 @@ and executable Python script.
 Crucially, ensure the generated code:
 1. Includes all necessary imports.
 2. Contains a `if __name__ == '__main__':` block for execution.
-3. Hardcodes any necessary inputs or uses placeholder variables; it must not ask for interactive user input.
+3. Hardcodes any necessary inputs or uses placeholder variables; 
+it must not ask for interactive user input.
+4. Pay special attention to correct indentation and syntax of the code.
 """
 
 CODE_GENERATION_PROMPT = """You are an expert Python developer. 

@@ -14,11 +14,11 @@ echo "Checking container status..."
 docker-compose ps
 
 echo ""
-echo "Application is running at http://localhost:7860"
+
 echo "To stop: docker-compose down"
 echo "To view logs: docker-compose logs -f"
 
 # Show recent logs
 echo ""
 echo "=== Recent Logs ==="
-docker-compose logs --tail=10
+docker-compose logs --tail=15
