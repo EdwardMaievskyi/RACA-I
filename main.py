@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from ui.gradio_app import launch_app
+from web_ui.gradio_app import launch_app
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

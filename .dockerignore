@@ -18,3 +18,4 @@ venv/
 .cursorignore
 *.log
 .DS_Store
+readme_imgs/*

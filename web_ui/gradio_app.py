@@ -745,8 +745,8 @@ def create_gradio_interface():
 
         gr.HTML("""
         <div class="footer-container">
-            <p>🔒 Your code is generated and executed securely in an isolated environment</p>
-            <p>⚡ Powered by OpenAI GPT-4 and LangGraph workflow engine</p>
+            <p>🔒 Generated code is executed securely in the E2B isolated environment</p>
+            <p>⚡ Powered by OpenAI 04-mini and LangGraph workflow engine</p>
         </div>
         """)
 

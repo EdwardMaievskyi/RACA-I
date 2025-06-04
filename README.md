@@ -1,6 +1,6 @@
 # RACA-I: ReAct Code Agent
 
-**RACA-I** (ReAct Code Agent) is an advanced AI-powered Python code generation agent that transforms natural language instructions into executable code. Built with OpenAI 04-mini and the LangGraph framework, it provides a secure, interactive web interface for rapid prototyping, code generation, execution, and answering questions requiring calculations, data analysis, and more.
+**RACA-I** (ReAct Code Agent) is an advanced AI-powered Python code generation agent that transforms natural language instructions into executable code. Built with OpenAI 04-mini and the LangGraph framework, it provides a secure, interactive web interface for rapid prototyping, code generation, execution of generated code in secure environment, and answering questions requiring calculations, data analysis, and more.
 
 ---
 
@@ -17,9 +17,13 @@
 
 ---
 
-## 🖥️ Demo
+## 📊 Agent Workflow Visualization
 
-By default, the app runs at: [http://localhost:7860](http://localhost:7860)
+![RACA-I Workflow Visualization](readme_imgs/RACA_I_workflow_visualization.png)
+
+---
+
+## 🖥️ Demo
 
 URL to video with demo will be available soon.
 
@@ -33,7 +37,9 @@ URL to video with demo will be available soon.
 - OpenAI API key (for OpenAI's [o4-mini](https://platform.openai.com/docs/models/o4-mini) access)
 - [E2B](https://e2b.dev/) API key (for secure code execution)
 
+
 #### To Start the App in YOUR local environment
+
 
 ```bash
 git clone https://github.com/EdwardMaievskyi/RACA-I.git
@@ -43,6 +49,8 @@ pip install -r requirements.txt  # Install dependencies
 chmod +x run.sh  # Make run.sh file executable
 ./run.sh  # Run the app
 ```
+
+By default, the app runs at: [http://localhost:7860](http://localhost:7860)
 
 #### To Stop and View Logs
 
