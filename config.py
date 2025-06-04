@@ -11,4 +11,4 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # E2B Configuration
 E2B_API_KEY = os.getenv("E2B_API_KEY")
 E2B_TEMPLATE_ID = os.getenv("E2B_TEMPLATE_ID", "base")
-ALLOW_LOCAL_EXECUTION = os.getenv("ALLOW_LOCAL_EXECUTION", False)
+ALLOW_LOCAL_EXECUTION = os.getenv("ALLOW_LOCAL_EXECUTION") == 'true'
