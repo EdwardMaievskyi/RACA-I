@@ -17,9 +17,11 @@
 
 ---
 
-## 🖥️ Demo
+## 📊 Agent Workflow Visualization
 
-By default, the app runs at: [http://localhost:7860](http://localhost:7860)
+![RACA-I Workflow Visualization](readme_imgs/RACA_I_workflow_visualization.png)
+
+## 🖥️ Demo
 
 URL to video with demo will be available soon.
 
@@ -43,6 +45,8 @@ pip install -r requirements.txt  # Install dependencies
 chmod +x run.sh  # Make run.sh file executable
 ./run.sh  # Run the app
 ```
+
+By default, the app runs at: [http://localhost:7860](http://localhost:7860)
 
 #### To Stop and View Logs
 
