@@ -1,6 +1,6 @@
 # RACA-I: ReAct Code Agent
 
-**RACA-I** (ReAct Code Agent) is an advanced AI-powered Python code generation agent that transforms natural language instructions into executable code. Built with OpenAI 04-mini and the LangGraph workflow engine, it provides a secure, interactive web interface for rapid prototyping, code generation, execution, and answering questions requiring calculations, data analysis, and more.
+**RACA-I** (ReAct Code Agent) is an advanced AI-powered Python code generation agent that transforms natural language instructions into executable code. Built with OpenAI 04-mini and the LangGraph framework, it provides a secure, interactive web interface for rapid prototyping, code generation, execution, and answering questions requiring calculations, data analysis, and more.
 
 ---
 
@@ -12,8 +12,8 @@
 - **Downloadable Output:** Download generated code with a single click.
 - **Modern Web UI:** Clean, user-friendly interface powered by [Gradio](https://gradio.app/).
 - **Custom Examples:** Predefined and custom examples to guide your prompts.
-- **Powered by OpenAI & LangGraph:** Utilizes state-of-the-art language models and workflow orchestration for reliable results.
-- **Secure Execution:** Your code is generated and executed in an isolated, sandboxed environment.
+- **Powered by OpenAI & LangGraph:** Utilizes state-of-the-art cost-effective OpenAI's [o4-mini](https://platform.openai.com/docs/models/o4-mini) model for powering AI agent and getting reliable results.
+- **Secure Execution:** Your code is generated and executed in an isolated, sandboxed environment provided by [E2B](https://e2b.dev/).
 
 ---
 
@@ -29,10 +29,20 @@ URL to video with demo will be available soon.
 
 ### Prerequisites
 
-- Python 3.9+
 - [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
-- OpenAI API key (for GPT-4 access)
+- OpenAI API key (for OpenAI's [o4-mini](https://platform.openai.com/docs/models/o4-mini) access)
+- [E2B](https://e2b.dev/) API key (for secure code execution)
 
+#### To Start the App in YOUR local environment
+
+```bash
+git clone https://github.com/EdwardMaievskyi/RACA-I.git
+cd */RACA-I  # Navigate to the project directory
+cp .env.example .env  # Copy the example .env file and edit it with your OpenAI API key
+pip install -r requirements.txt  # Install dependencies
+chmod +x run.sh  # Make run.sh file executable
+./run.sh  # Run the app
+```
 
 #### To Stop and View Logs
 
@@ -74,10 +84,13 @@ docker-compose logs -f # View logs
 
 ### Example Prompts
 
-- `Calculate the 101st prime number`
-- `Return a prettified plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance`
+- `Calculate the 101st Fibonacci number`"],`
+- `Calculate the 97th prime number`
+- `Return a plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance`
+- `Create a password generator with customizable length and character sets`
+- `Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a plain text table using the Open-Meteo API.`
 - `Convert 20 Fahrenheit to Celsius`
-- `Return current weather conditions for Vancouver, Kyiv, Washington, and San Francisco using the Open-Meteo API`
+- `Count number of characters 'r' in the word 'raspberry'`
 
 ---
 
@@ -112,6 +125,6 @@ Pull requests, issues, and feature requests are welcome! Please open an issue to
 ## 📫 Contact
 
 - Author: Eduard Maievskyi
-- GitHub: [EduardMaievskyi](https://github.com/EdwardMaievskyi)
+- GitHub: [EdwardMaievskyi](https://github.com/EdwardMaievskyi)
 - LinkedIn: [EduardMaievskyi](https://www.linkedin.com/in/eduard-maievskyi-phd/)
-- For questions, please open an issue or contact via GitHub or LinkedIn.
+- For questions, please contact via GitHub or LinkedIn or open an issue.

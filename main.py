@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 from dotenv import load_dotenv
 
@@ -13,12 +12,6 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main entry point for the web interface."""
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ Error: OPENAI_API_KEY environment variable is not set!")
-        print("Please set your OpenAI API key:")
-        print("export OPENAI_API_KEY='your-api-key-here'")
-        sys.exit(1)
-
     try:
         logger.info("Launching Gradio app...")
         launch_app()
