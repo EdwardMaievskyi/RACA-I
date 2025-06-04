@@ -6,7 +6,7 @@ docker-compose.yml
 run.sh
 Dockerfile
 .dockerignore
-__pycache__
+*/__pycache__/*
 *.pyc
 *.pyo
 *.pyd
@@ -14,8 +14,8 @@ __pycache__
 .coverage
 .venv
 venv/
-.env
 .env.example
 .cursorignore
 *.log
 .DS_Store
+readme_imgs/*
