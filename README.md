@@ -21,6 +21,8 @@
 
 ![RACA-I Workflow Visualization](readme_imgs/RACA_I_workflow_visualization.png)
 
+---
+
 ## 🖥️ Demo
 
 URL to video with demo will be available soon.
@@ -35,7 +37,9 @@ URL to video with demo will be available soon.
 - OpenAI API key (for OpenAI's [o4-mini](https://platform.openai.com/docs/models/o4-mini) access)
 - [E2B](https://e2b.dev/) API key (for secure code execution)
 
+
 #### To Start the App in YOUR local environment
+
 
 ```bash
 git clone https://github.com/EdwardMaievskyi/RACA-I.git
