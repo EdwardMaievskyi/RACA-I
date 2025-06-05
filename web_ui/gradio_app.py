@@ -157,6 +157,7 @@ def load_custom_css() -> str:
     """Load custom CSS styles."""
     return """
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap');
 
     * {
         font-family: 'Roboto', sans-serif !important;
@@ -316,6 +317,7 @@ def load_custom_css() -> str:
     .output-section textarea {
         background: #f8fafc !important;
         border: none !important;
+        font-family: 'Roboto Mono', monospace !important;
         font-size: 14px !important;
         line-height: 1.6 !important;
     }
@@ -390,7 +392,7 @@ def load_custom_css() -> str:
         background: #f8fafc !important;
         border: none !important;
         border-radius: 15px !important;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace !important;
+        font-family: 'Roboto Mono', monospace !important;
         font-size: 14px !important;
         line-height: 1.6 !important;
     }
@@ -402,12 +404,13 @@ def load_custom_css() -> str:
         margin: 0 !important;
         border-radius: 15px !important;
         overflow-x: auto !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
 
     .code-container code {
         background: #f8fafc !important;
         color: #2d3748 !important;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
 
     /* Fix line numbers styling */
@@ -631,9 +634,16 @@ def create_gradio_interface():
                 examples=[
                     ["Calculate the 101st Fibonacci number"],
                     ["Calculate the 97th prime number"],
-                    ["Return a plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance"],
-                    ["Create a password generator with customizable length and character sets"],
-                    ["Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a plain text table using the Open-Meteo API."],
+                    ["Return a plain text table with the historical prices " +
+                     "of the BTC-USD ticker for the last 20 days from " +
+                     "Yahoo Finance"],
+                    ["Create a password generator with customizable length " +
+                     "and character sets"],
+                    ["Use the Open-Meteo API to return current " + 
+                     "weather conditions in the format of a plain text " +
+                     "table for the following cities: Vancouver (BC), " + 
+                     "Kyiv (UA), Bogota (CO), Washington (D.C.), " +
+                     "and San Francisco (CA)."],
                     ["Convert 20 Fahrenheit to Celsius"],
                     ["Count number of characters 'r' in the word 'raspberry'"]
                 ],
