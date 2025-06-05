@@ -15,8 +15,8 @@ class CodeGeneratorUI:
         self.agent = CodeAgent(verbose=False)
 
     def generate_and_execute_code(
-        self, 
-        user_request: str, 
+        self,
+        user_request: str,
         max_retries: int
     ) -> Tuple[str, str, str, str, Optional[str]]:
         """
@@ -631,9 +631,16 @@ def create_gradio_interface():
                 examples=[
                     ["Calculate the 101st Fibonacci number"],
                     ["Calculate the 97th prime number"],
-                    ["Return a plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance"],
-                    ["Create a password generator with customizable length and character sets"],
-                    ["Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a plain text table using the Open-Meteo API."],
+                    ["Return a plain text table with the historical prices " +
+                     "of the BTC-USD ticker for the last 20 days from " +
+                     "Yahoo Finance"],
+                    ["Create a password generator with customizable " +
+                     "length and character sets"],
+                    ["Use the Open Meteo API to return current " +
+                     "weather conditions in the CSV format for the " +
+                     "following cities: Vancouver (BC), Kyiv (UA), " +
+                     "Washington (DC), San Francisco (CA), " +
+                     "and Bogota (CO)."],
                     ["Convert 20 Fahrenheit to Celsius"],
                     ["Count number of characters 'r' in the word 'raspberry'"]
                 ],
