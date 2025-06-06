@@ -15,9 +15,8 @@ class CodeGeneratorUI:
         self.agent = CodeAgent(verbose=False)
 
     def generate_and_execute_code(
-        self, 
-        user_request: str, 
-        max_retries: int
+        self,
+        user_request: str
     ) -> Tuple[str, str, str, str, Optional[str]]:
         """
         Generate and execute code based on user request.
@@ -33,8 +32,6 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-
-        self.agent.max_retries = max_retries
 
         try:
             result = self.agent.generate_and_execute(user_request)
@@ -53,8 +50,7 @@ class CodeGeneratorUI:
 
     def generate_code_only(
         self,
-        user_request: str,
-        max_retries: int
+        user_request: str
     ) -> Tuple[str, str, str, Optional[str]]:
         """
         Generate code without executing it.
@@ -69,8 +65,6 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-
-        self.agent.max_retries = max_retries
 
         try:
             result = self.agent.generate_code_only(user_request)
@@ -652,16 +646,6 @@ def create_gradio_interface():
             )
 
             with gr.Row():
-                max_retries = gr.Slider(
-                    minimum=1,
-                    maximum=5,
-                    value=3,
-                    step=1,
-                    label="🔄 Max Retry Attempts",
-                    info="Number of attempts if code generation fails"
-                )
-
-            with gr.Row():
                 generate_and_run_btn = gr.Button(
                     "🚀 Generate & Execute Code",
                     variant="primary",
@@ -709,8 +693,8 @@ def create_gradio_interface():
                             elem_classes=["download-btn"]
                         )
 
-        def handle_generate_and_execute(request, retries):
-            status, answer, code, info, file_path = ui.generate_and_execute_code(request, retries)
+        def handle_generate_and_execute(request):
+            status, answer, code, info, file_path = ui.generate_and_execute_code(request)
             return status, answer, code, info, gr.DownloadButton(
                 label="💾 Download Code",
                 value=file_path,
@@ -720,8 +704,7 @@ def create_gradio_interface():
 
         generate_and_run_btn.click(
             fn=handle_generate_and_execute,
-            inputs=[user_request,
-                    max_retries],
+            inputs=[user_request],
             outputs=[status_display,
                      final_answer,
                      generated_code,
@@ -730,10 +713,8 @@ def create_gradio_interface():
             show_progress=True
         )
 
-        def handle_generate_only(request, retries):
-            status, code, info, file_path = ui.generate_code_only(request,
-                                                                  retries)
-
+        def handle_generate_only(request):
+            status, code, info, file_path = ui.generate_code_only(request)
             return status, "", code, info, gr.DownloadButton(
                 label="💾 Download Code",
                 value=file_path,
@@ -743,8 +724,7 @@ def create_gradio_interface():
 
         generate_only_btn.click(
             fn=handle_generate_only,
-            inputs=[user_request,
-                    max_retries],
+            inputs=[user_request],
             outputs=[status_display,
                      final_answer,
                      generated_code,

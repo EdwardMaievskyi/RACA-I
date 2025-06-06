@@ -1,8 +1,4 @@
-import os
 import re
-import subprocess
-import sys
-import tempfile
 import time
 import logging
 
@@ -10,8 +6,7 @@ from e2b_code_interpreter import Sandbox
 
 from config import (MAX_CODE_TIMEOUT,
                     MAX_RETRY_ITERATIONS,
-                    E2B_API_KEY,
-                    ALLOW_LOCAL_EXECUTION)
+                    E2B_API_KEY)
 from core.interaction import call_llm_with_tool
 from core.state_models import GraphState, CodeSolution, PythonCode
 from core.prompts import (PROMPT_OPTIMIZATION_SYSTEM_PROMPT,
@@ -122,7 +117,6 @@ def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphS
             ) as sandbox:
                 logger.info("Sandbox initialized successfully.")
 
-                # Install required libraries
                 if libs:
                     logger.info(f"Installing required libraries in sandbox: {libs}")
                     for lib in libs:
@@ -151,7 +145,6 @@ def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphS
                         except Exception as e:
                             logger.warning(f"Exception while trying to install {lib}: {e}")
 
-                # Execute code with retries
                 for exec_attempt in range(max_execution_retries):
                     try:
                         logger.info(f"Executing main code in E2B sandbox (attempt {exec_attempt + 1}/{max_execution_retries})...")
@@ -214,74 +207,12 @@ def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphS
                 continue
 
     # If we get here, all attempts failed
-    logger.critical("All E2B attempts failed. Falling back to local execution.")
+    logger.critical("All E2B attempts failed")
     if last_error:
         state["feedback_history"].append(f"Last E2B error: {last_error}")
-    return _execute_locally(state, full_code)
-
-
-def _execute_locally(state: GraphState, full_code: str) -> GraphState:
-    """Fallback local execution method"""
-    logger.warning("Using local execution (WARNING: Less secure than sandbox).")
-
-    temp_file_path = None
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write(full_code)
-            temp_file_path = f.name
-
-        logger.info("Executing code locally from " +
-                    f"temporary file: {temp_file_path}...")
-        result = subprocess.run(
-            [sys.executable, temp_file_path],
-            capture_output=True,
-            text=True,
-            timeout=MAX_CODE_TIMEOUT,
-            check=False
-        )
-
-        if result.returncode != 0:
-            error_output = result.stderr.strip() or "Unknown error occurred during local execution"
-            logger.error(f"Local code execution failed with return code {result.returncode}.\nError:\n---\n{error_output}\n---")
-            feedback = f"Your code failed to execute locally. Error:\n{error_output}"
-            return {**state,
-                    "error_message": "Local execution failed.",
-                    "feedback_history": state["feedback_history"] + [feedback]}
-        else:
-            output = result.stdout.strip() or "Code executed successfully locally (no output)"
-            logger.info("Local code executed successfully.\n" +
-                        f"Output:\n---\n{output}\n---")
-            if result.stderr.strip():
-                logger.info("Local Execution Stderr (warnings/info):\n" +
-                            f"---\n{result.stderr.strip()}\n---")
-            return {**state,
-                    "execution_result": output,
-                    "error_message": None}
-
-    except subprocess.TimeoutExpired:
-        logger.error("Local code execution timed out " +
-                     "after {MAX_CODE_TIMEOUT} seconds.")
-        feedback = f"Your code took longer than {MAX_CODE_TIMEOUT} " +\
-            "seconds to run and was terminated. " + \
-            "Please optimize for performance."
-        return {**state,
-                "error_message": "Local execution timed out.",
-                "feedback_history": state["feedback_history"] + [feedback]}
-    except Exception as e:
-        logger.error(f"Local execution failed with an unexpected error: {e}",
-                     exc_info=True)
-        feedback = f"The code could not be executed locally due to an error: {e}"
-        return {**state,
-                "error_message": str(e),
-                "feedback_history": state["feedback_history"] + [feedback]}
-    finally:
-        if temp_file_path and os.path.exists(temp_file_path):
-            try:
-                os.unlink(temp_file_path)
-                logger.debug(f"Cleaned up temporary file: {temp_file_path}")
-            except OSError as e:
-                logger.warning("Error deleting temporary" +
-                               f"file {temp_file_path}: {e}")
+    return {**state,
+            "error_message": "All E2B execution attempts failed.",
+            "feedback_history": state["feedback_history"] + [feedback]}
 
 
 def should_continue(state: GraphState) -> str:
