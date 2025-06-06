@@ -1,8 +1,4 @@
-import os
 import re
-import subprocess
-import sys
-import tempfile
 import time
 import logging
 
@@ -10,8 +6,7 @@ from e2b_code_interpreter import Sandbox
 
 from config import (MAX_CODE_TIMEOUT,
                     MAX_RETRY_ITERATIONS,
-                    E2B_API_KEY,
-                    ALLOW_LOCAL_EXECUTION)
+                    E2B_API_KEY)
 from core.interaction import call_llm_with_tool
 from core.state_models import GraphState, CodeSolution, PythonCode
 from core.prompts import (PROMPT_OPTIMIZATION_SYSTEM_PROMPT,
@@ -101,18 +96,20 @@ def execute_code(state: GraphState) -> GraphState:
 
 
 def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphState:
-    """Execute code using E2B Sandbox"""
+    """Execute code using E2B Sandbox with retry mechanism"""
     logger.info("Attempting E2B Sandbox for code execution...")
 
     libs = set(re.findall(r'^\s*(?:import|from)\s+([\w\d_]+)', imports, re.MULTILINE))
-
     max_sandbox_retries = 3
+    max_execution_retries = 5
+    last_error = None
+
     for attempt in range(max_sandbox_retries):
         try:
             sandbox_lifecycle_timeout = MAX_CODE_TIMEOUT
             logger.info("Initializing E2B sandbox with template, " +
-                        f"lifecycle timeout {sandbox_lifecycle_timeout}" +
-                        f"s (attempt {attempt + 1}/{max_sandbox_retries})...")
+                       f"lifecycle timeout {sandbox_lifecycle_timeout}" +
+                       f"s (attempt {attempt + 1}/{max_sandbox_retries})...")
 
             with Sandbox(
                 api_key=E2B_API_KEY,
@@ -123,12 +120,13 @@ def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphS
                 if libs:
                     logger.info(f"Installing required libraries in sandbox: {libs}")
                     for lib in libs:
-                        pip_install_op_timeout = 120 
+                        pip_install_op_timeout = MAX_CODE_TIMEOUT
                         try:
                             logger.info(f"Installing {lib} in sandbox...")
                             install_cmd = (
                                 f"import subprocess, sys; "
-                                f"proc = subprocess.run([sys.executable, '-m', 'pip', 'install', '{lib}'], capture_output=True, text=True, check=False); "
+                                f"proc = subprocess.run([sys.executable, '-m', 'pip', 'install', '{lib}'], "
+                                f"capture_output=True, text=True, check=False); "
                                 f"sys.stdout.write(proc.stdout); sys.stdout.flush(); "
                                 f"sys.stderr.write(proc.stderr); sys.stderr.flush(); "
                                 f"exit(proc.returncode)"
@@ -140,163 +138,81 @@ def _execute_with_e2b(state: GraphState, full_code: str, imports: str) -> GraphS
 
                             if install_result.error:
                                 error_message = str(install_result.error)
-                                pip_stdout_list = install_result.logs.stdout if install_result.logs.stdout else ""
-                                pip_stderr_list = install_result.logs.stderr if install_result.logs.stderr else ""
-                                logger.warning(f"Failed to install {lib}" + 
-                                               "in sandbox. Sandbox Error: " +
-                                               f"{error_message}")
-                                if pip_stdout_list:
-                                    for pip_stdout in pip_stdout_list:
-                                        print(f"    Pip stdout: {pip_stdout}")
-                                if pip_stderr_list:
-                                    for pip_stderr in pip_stderr_list:
-                                        print(f"    Pip stderr: {pip_stderr}")
+                                logger.warning(f"Failed to install {lib} in sandbox. Error: {error_message}")
                             else:
-                                logger.info("Successfully installed " + 
-                                            f"{lib} in sandbox.")
-                                if install_result.logs.stdout:
-                                    logger.info(f"Pip stdout: {install_result.logs.stdout}")
-                                if install_result.logs.stderr:
-                                    logger.warning(f"Pip stderr (warnings/info): {install_result.logs.stderr}")
+                                logger.info(f"Successfully installed {lib} in sandbox.")
 
                         except Exception as e:
                             logger.warning(f"Exception while trying to install {lib}: {e}")
 
-                logger.info("Executing main code in E2B sandbox...")
-                execution = sandbox.run_code(
-                    full_code,
-                    timeout=MAX_CODE_TIMEOUT
-                )
+                for exec_attempt in range(max_execution_retries):
+                    try:
+                        logger.info(f"Executing main code in E2B sandbox (attempt {exec_attempt + 1}/{max_execution_retries})...")
+                        execution = sandbox.run_code(
+                            full_code,
+                            timeout=MAX_CODE_TIMEOUT
+                        )
 
-                if execution.error:
-                    error_output = str(execution.error)
-                    if hasattr(execution.error, 'traceback') and isinstance(execution.error.traceback, list):
-                        error_output += "\nTraceback:\n" + "\n".join(execution.error.traceback)
-                    if hasattr(execution.logs, 'stderr') and execution.logs.stderr:
-                        error_output += "\nStderr from execution:\n" + str(execution.logs.stderr)
-                    logger.error(f"Code execution in sandbox resulted in an error:\n---\n{error_output}\n---")
-                    feedback = f"Your code failed to execute. Error:\n{error_output}"
-                    return {**state,
-                            "error_message": "Execution failed with sandbox error.",
-                            "feedback_history": state["feedback_history"] + [feedback]}
-                else:
-                    logger.info("Code executed successfully in sandbox " +
-                                "(from sandbox perspective).")
-                    output_parts = []
-                    if execution.logs.stdout:
-                        output_parts.extend(execution.logs.stdout)
+                        if execution.error:
+                            error_output = str(execution.error)
+                            if hasattr(execution.error, 'traceback'):
+                                error_output += "\nTraceback:\n" + "\n".join(execution.error.traceback)
+                            if hasattr(execution.logs, 'stderr'):
+                                error_output += "\nStderr from execution:\n" + str(execution.logs.stderr)
 
-                    final_output = "\n".join(output_parts).strip() if output_parts else "Code executed successfully (no direct stdout)"
+                            last_error = error_output
+                            logger.error(f"Code execution failed (attempt {exec_attempt + 1}): {error_output}")
 
-                    if execution.logs.stderr:
-                        logger.info(f"Execution Stderr from sandbox (may contain warnings or script errors):\n---\n{execution.logs.stderr}\n---")
+                            if exec_attempt < max_execution_retries - 1:
+                                logger.info("Retrying execution in 2 seconds...")
+                                time.sleep(2)
+                                continue
 
-                    logger.info(f"Execution Output from sandbox (stdout):\n---\n{final_output}\n---")
-                    return {**state,
-                            "execution_result": final_output,
-                            "error_message": None}
+                            feedback = f"Your code failed to execute after {max_execution_retries} attempts. Last error:\n{last_error}"
+                            return {**state,
+                                    "error_message": "Execution failed with sandbox error.",
+                                    "feedback_history": state["feedback_history"] + [feedback]}
+                        else:
+                            logger.info("Code executed successfully in sandbox.")
+                            output_parts = []
+                            if execution.logs.stdout:
+                                output_parts.extend(execution.logs.stdout)
+
+                            final_output = "\n".join(output_parts).strip() if output_parts else "Code executed successfully (no direct stdout)"
+
+                            if execution.logs.stderr:
+                                logger.info(f"Execution Stderr from sandbox:\n{execution.logs.stderr}")
+
+                            return {**state,
+                                    "execution_result": final_output,
+                                    "error_message": None}
+
+                    except Exception as e:
+                        last_error = str(e)
+                        logger.error(f"Execution attempt {exec_attempt + 1} failed: {last_error}")
+                        if exec_attempt < max_execution_retries - 1:
+                            logger.info("Retrying execution in 2 seconds...")
+                            time.sleep(2)
+                            continue
+                        break
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"E2B operation failed (attempt {attempt + 1}/{max_sandbox_retries}): {error_msg}", exc_info=True)
+            last_error = error_msg
+            logger.error(f"E2B operation failed (attempt {attempt + 1}/{max_sandbox_retries}): {error_msg}")
 
-            if "port is not open" in error_msg.lower() or "sandbox" in error_msg.lower() or "502" in error_msg:
-                if attempt < max_sandbox_retries - 1:
-                    logger.warning("Sandbox connection/initialization " +
-                                   "failed. Retrying in 5 seconds...")
-                    time.sleep(5)
-                    continue
-                elif ALLOW_LOCAL_EXECUTION:
-                    logger.error("Failed to connect to/initialize " +
-                                 "sandbox after multiple attempts. " +
-                                 "Falling back to local execution if possible.")
-                    return _execute_locally(state, full_code)
-            elif "timeout" in error_msg.lower() and "sandbox.run_code" not in error_msg.lower():
-                logger.error("Sandbox lifecycle timeout.")
-                feedback = "The code execution environment took too " +\
-                    "long to initialize or operate (overall timeout " +\
-                    f"{sandbox_lifecycle_timeout}s)."
-                return {**state,
-                        "error_message": "Sandbox lifecycle timeout.",
-                        "feedback_history": state["feedback_history"] + [feedback]}
-            else:
-                if attempt < max_sandbox_retries - 1:
-                    logger.warning("Unexpected E2B error. " +
-                                   "Retrying in 5 seconds...")
-                    time.sleep(5)
-                    continue
-                else:
-                    logger.error("An unexpected error occurred with " +
-                                 "E2B after retries. Falling back " +
-                                 "to local execution.")
-                    return _execute_locally(state, full_code)
+            if attempt < max_sandbox_retries - 1:
+                logger.warning("Sandbox error. Retrying in 5 seconds...")
+                time.sleep(5)
+                continue
 
-    logger.critical("All E2B attempts failed. Falling back to local execution.")
-    return _execute_locally(state, full_code)
-
-
-def _execute_locally(state: GraphState, full_code: str) -> GraphState:
-    """Fallback local execution method"""
-    logger.warning("Using local execution (WARNING: Less secure than sandbox).")
-
-    temp_file_path = None
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write(full_code)
-            temp_file_path = f.name
-
-        logger.info("Executing code locally from " +
-                    f"temporary file: {temp_file_path}...")
-        result = subprocess.run(
-            [sys.executable, temp_file_path],
-            capture_output=True,
-            text=True,
-            timeout=MAX_CODE_TIMEOUT,
-            check=False
-        )
-
-        if result.returncode != 0:
-            error_output = result.stderr.strip() or "Unknown error occurred during local execution"
-            logger.error(f"Local code execution failed with return code {result.returncode}.\nError:\n---\n{error_output}\n---")
-            feedback = f"Your code failed to execute locally. Error:\n{error_output}"
-            return {**state,
-                    "error_message": "Local execution failed.",
-                    "feedback_history": state["feedback_history"] + [feedback]}
-        else:
-            output = result.stdout.strip() or "Code executed successfully locally (no output)"
-            logger.info("Local code executed successfully.\n" +
-                        f"Output:\n---\n{output}\n---")
-            if result.stderr.strip():
-                logger.info("Local Execution Stderr (warnings/info):\n" +
-                            f"---\n{result.stderr.strip()}\n---")
-            return {**state,
-                    "execution_result": output,
-                    "error_message": None}
-
-    except subprocess.TimeoutExpired:
-        logger.error("Local code execution timed out " +
-                     "after {MAX_CODE_TIMEOUT} seconds.")
-        feedback = f"Your code took longer than {MAX_CODE_TIMEOUT} " +\
-            "seconds to run and was terminated. " + \
-            "Please optimize for performance."
-        return {**state,
-                "error_message": "Local execution timed out.",
-                "feedback_history": state["feedback_history"] + [feedback]}
-    except Exception as e:
-        logger.error(f"Local execution failed with an unexpected error: {e}",
-                     exc_info=True)
-        feedback = f"The code could not be executed locally due to an error: {e}"
-        return {**state,
-                "error_message": str(e),
-                "feedback_history": state["feedback_history"] + [feedback]}
-    finally:
-        if temp_file_path and os.path.exists(temp_file_path):
-            try:
-                os.unlink(temp_file_path)
-                logger.debug(f"Cleaned up temporary file: {temp_file_path}")
-            except OSError as e:
-                logger.warning("Error deleting temporary" +
-                               f"file {temp_file_path}: {e}")
+    # If we get here, all attempts failed
+    logger.critical("All E2B attempts failed")
+    if last_error:
+        state["feedback_history"].append(f"Last E2B error: {last_error}")
+    return {**state,
+            "error_message": "All E2B execution attempts failed.",
+            "feedback_history": state["feedback_history"] + [feedback]}
 
 
 def should_continue(state: GraphState) -> str:

@@ -25,7 +25,7 @@
 
 ## 🖥️ Demo
 
-URL to video with demo will be available soon.
+[![Demo RACA-I](https://img.youtube.com/vi/84YQQje_t3Q/hqdefault.jpg)](https://youtu.be/84YQQje_t3Q)
 
 ---
 

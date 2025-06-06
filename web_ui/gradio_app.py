@@ -15,9 +15,8 @@ class CodeGeneratorUI:
         self.agent = CodeAgent(verbose=False)
 
     def generate_and_execute_code(
-        self, 
-        user_request: str, 
-        max_retries: int
+        self,
+        user_request: str
     ) -> Tuple[str, str, str, str, Optional[str]]:
         """
         Generate and execute code based on user request.
@@ -33,8 +32,6 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-
-        self.agent.max_retries = max_retries
 
         try:
             result = self.agent.generate_and_execute(user_request)
@@ -53,8 +50,7 @@ class CodeGeneratorUI:
 
     def generate_code_only(
         self,
-        user_request: str,
-        max_retries: int
+        user_request: str
     ) -> Tuple[str, str, str, Optional[str]]:
         """
         Generate code without executing it.
@@ -69,8 +65,6 @@ class CodeGeneratorUI:
                 "",
                 None
             )
-
-        self.agent.max_retries = max_retries
 
         try:
             result = self.agent.generate_code_only(user_request)
@@ -157,6 +151,7 @@ def load_custom_css() -> str:
     """Load custom CSS styles."""
     return """
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap');
 
     * {
         font-family: 'Roboto', sans-serif !important;
@@ -316,6 +311,7 @@ def load_custom_css() -> str:
     .output-section textarea {
         background: #f8fafc !important;
         border: none !important;
+        font-family: 'Roboto Mono', monospace !important;
         font-size: 14px !important;
         line-height: 1.6 !important;
     }
@@ -390,7 +386,7 @@ def load_custom_css() -> str:
         background: #f8fafc !important;
         border: none !important;
         border-radius: 15px !important;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace !important;
+        font-family: 'Roboto Mono', monospace !important;
         font-size: 14px !important;
         line-height: 1.6 !important;
     }
@@ -402,12 +398,13 @@ def load_custom_css() -> str:
         margin: 0 !important;
         border-radius: 15px !important;
         overflow-x: auto !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
 
     .code-container code {
         background: #f8fafc !important;
         color: #2d3748 !important;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
 
     /* Fix line numbers styling */
@@ -631,25 +628,22 @@ def create_gradio_interface():
                 examples=[
                     ["Calculate the 101st Fibonacci number"],
                     ["Calculate the 97th prime number"],
-                    ["Return a plain text table with the historical prices of the BTC-USD ticker for the last 20 days from Yahoo Finance"],
-                    ["Create a password generator with customizable length and character sets"],
-                    ["Return current weather conditions for the following cities: Vancouver (BC), Kyiv (UA), Washington(DC), San Francisco(CA), in the format of a plain text table using the Open-Meteo API."],
+                    ["Return a plain text table with the historical prices " +
+                     "of the BTC-USD ticker for the last 20 days from " +
+                     "Yahoo Finance"],
+                    ["Create a password generator with customizable length " +
+                     "and character sets"],
+                    ["Use the Open-Meteo API to return current " + 
+                     "weather conditions in the format of a plain text " +
+                     "table for the following cities: Vancouver (BC), " + 
+                     "Kyiv (UA), Bogota (CO), Washington (D.C.), " +
+                     "and San Francisco (CA)."],
                     ["Convert 20 Fahrenheit to Celsius"],
                     ["Count number of characters 'r' in the word 'raspberry'"]
                 ],
                 inputs=[user_request],
                 label="💡 Click any example to try it out"
             )
-
-            with gr.Row():
-                max_retries = gr.Slider(
-                    minimum=1,
-                    maximum=5,
-                    value=3,
-                    step=1,
-                    label="🔄 Max Retry Attempts",
-                    info="Number of attempts if code generation fails"
-                )
 
             with gr.Row():
                 generate_and_run_btn = gr.Button(
@@ -699,8 +693,8 @@ def create_gradio_interface():
                             elem_classes=["download-btn"]
                         )
 
-        def handle_generate_and_execute(request, retries):
-            status, answer, code, info, file_path = ui.generate_and_execute_code(request, retries)
+        def handle_generate_and_execute(request):
+            status, answer, code, info, file_path = ui.generate_and_execute_code(request)
             return status, answer, code, info, gr.DownloadButton(
                 label="💾 Download Code",
                 value=file_path,
@@ -710,8 +704,7 @@ def create_gradio_interface():
 
         generate_and_run_btn.click(
             fn=handle_generate_and_execute,
-            inputs=[user_request,
-                    max_retries],
+            inputs=[user_request],
             outputs=[status_display,
                      final_answer,
                      generated_code,
@@ -720,10 +713,8 @@ def create_gradio_interface():
             show_progress=True
         )
 
-        def handle_generate_only(request, retries):
-            status, code, info, file_path = ui.generate_code_only(request,
-                                                                  retries)
-
+        def handle_generate_only(request):
+            status, code, info, file_path = ui.generate_code_only(request)
             return status, "", code, info, gr.DownloadButton(
                 label="💾 Download Code",
                 value=file_path,
@@ -733,8 +724,7 @@ def create_gradio_interface():
 
         generate_only_btn.click(
             fn=handle_generate_only,
-            inputs=[user_request,
-                    max_retries],
+            inputs=[user_request],
             outputs=[status_display,
                      final_answer,
                      generated_code,
